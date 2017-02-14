@@ -1,0 +1,106 @@
+/* Arduino USB Keyboard HID demo
+ * Cut/Copy/Paste Keys
+ */
+
+#define KEY_LEFT_CTRL  0x01
+#define KEY_LEFT_SHIFT  0x02
+#define KEY_LEFT_ALT 226
+#define KEY_RIGHT_CTRL  0x10
+#define KEY_RIGHT_SHIFT 0x20
+#define KEY_RIGHT_ALT 230
+#define KEY_F 9
+#define KEY_G 10
+
+uint8_t buf[8] = { 
+  0 };  /* Keyboard report buffer */
+
+#define PIN_FLAPS 3
+#define PIN_GEAR 5
+
+
+
+int flapstate = 0;
+int flaponsent = 0;
+int flapoffsent = 0;
+
+int gearstate = 0;
+int gearonsent = 0;
+int gearoffsent = 0;
+
+void setup() 
+{
+  Serial.begin(9600);
+
+  pinMode(PIN_FLAPS, INPUT);
+  pinMode(PIN_GEAR, INPUT);
+
+  // Enable internal pull-ups
+  digitalWrite(PIN_FLAPS, 1); 
+  digitalWrite(PIN_GEAR, 1); 
+
+  delay(200);
+}
+
+void loop() 
+{
+  int flapstate2 = digitalRead(PIN_FLAPS);
+  if (flapstate != flapstate2) 
+  {
+     if (flapstate2 == 1 && flaponsent == 0) 
+     {
+       buf[0] = KEY_LEFT_SHIFT;   // SHIFT
+       buf[2] = KEY_F;    // Key F
+       Serial.write(buf, 8); // Ssend keypress
+       releaseKey();
+       flaponsent = 1;
+       flapoffsent = 0;
+       }
+     if (flapstate2 == 0 && flapoffsent == 0) 
+     {
+        buf[2] = 9;   // F
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        flaponsent = 0;
+        flapoffsent = 1;
+      }
+       
+    } 
+     flapstate = flapstate2;
+   
+
+
+  
+  int gearstate2 = digitalRead(PIN_GEAR);
+  if (gearstate != gearstate2) 
+  {
+     if (gearstate2 == 1 && gearonsent == 0) 
+     {
+       buf[0] = KEY_LEFT_CTRL;
+       buf[2] = KEY_G;    // Key G
+       Serial.write(buf, 8); // Send keypress
+       releaseKey();
+       gearonsent = 1;
+       gearoffsent = 0;
+       }
+     if (gearstate2 == 0 && gearoffsent == 0) 
+     {
+        buf[0] = KEY_LEFT_SHIFT;
+        buf[2] = 10;   // Key G
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        gearonsent = 0;
+        gearoffsent = 1;
+      }
+       
+    } 
+     gearstate = gearstate2;
+
+}
+
+void releaseKey() 
+{
+  buf[0] = 0;
+  buf[2] = 0;
+  Serial.write(buf, 8); // Release key  
+  delay(500);
+}
