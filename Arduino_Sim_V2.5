@@ -1,0 +1,192 @@
+
+#define KEY_LEFT_CTRL  0x01
+#define KEY_LEFT_SHIFT  0x02
+#define KEY_LEFT_ALT 226
+#define KEY_RIGHT_CTRL  0x10
+#define KEY_RIGHT_SHIFT 0x20
+#define KEY_RIGHT_ALT 230
+#define KEY_F 9
+#define KEY_G 10
+
+uint8_t buf[8] = { 
+  0 };  /* Keyboard report buffer */
+
+#define PIN_FLAPS 3
+#define PIN_FLARE 4
+#define PIN_GEAR 5
+#define PIN_ATTACK 6
+#define PIN_WEAPON 7
+#define PIN_ENGINE 9
+
+
+int flapstate = 0;
+int flaponsent = 0;
+int flapoffsent = 0;
+
+int flarestate = 0;
+
+int gearstate = 0;
+int gearonsent = 0;
+int gearoffsent = 0;
+
+int attackstate = 0;
+int attackonsent = 0;
+int attackoffsent = 0;
+
+int weaponstate = 0;
+
+int enginestate = 0;
+int engineonsent = 0;
+int engineoffsent = 0;
+
+
+
+void setup() 
+{
+  Serial.begin(9600);
+
+  pinMode(PIN_FLAPS, INPUT);
+  pinMode(PIN_GEAR, INPUT);
+  pinMode(PIN_FLARE, INPUT);
+  pinMode(PIN_ATTACK, INPUT);
+  pinMode(PIN_WEAPON, INPUT);
+  pinMode(PIN_ENGINE, INPUT);
+  // Enable internal pull-ups
+  digitalWrite(PIN_FLAPS, 1);
+  digitalWrite(PIN_FLARE, 1); 
+  digitalWrite(PIN_GEAR, 1); 
+  digitalWrite(PIN_ATTACK, 1);
+  digitalWrite(PIN_WEAPON, 1);
+  digitalWrite(PIN_ENGINE, 1);
+
+
+  delay(200);
+}
+
+void loop() 
+{
+  int flapstate2 = digitalRead(PIN_FLAPS);
+  if (flapstate != flapstate2) 
+  {
+     if (flapstate2 == 1 && flaponsent == 0) 
+     {
+       buf[0] = KEY_LEFT_SHIFT;   // SHIFT
+       buf[2] = KEY_F;    // Key F
+       Serial.write(buf, 8); // Ssend keypress
+       releaseKey();
+       flaponsent = 1;
+       flapoffsent = 0;
+       }
+     if (flapstate2 == 0 && flapoffsent == 0) 
+     {
+        buf[2] = 9;   // F
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        flaponsent = 0;
+        flapoffsent = 1;
+      }
+       
+    } 
+     flapstate = flapstate2;
+   
+
+  flarestate = digitalRead(PIN_FLARE);
+  if (flarestate != 1) {
+    buf[2] = 20;   // q
+    
+    Serial.write(buf, 8); // Send keypress
+    releaseKey();
+    
+  } 
+  
+  int gearstate2 = digitalRead(PIN_GEAR);
+  if (gearstate != gearstate2) 
+  {
+     if (gearstate2 == 1 && gearonsent == 0) 
+     {
+       buf[0] = KEY_LEFT_CTRL;
+       buf[2] = KEY_G;    // Key G
+       Serial.write(buf, 8); // Send keypress
+       releaseKey();
+       gearonsent = 1;
+       gearoffsent = 0;
+       }
+     if (gearstate2 == 0 && gearoffsent == 0) 
+     {
+        buf[0] = KEY_LEFT_SHIFT;
+        buf[2] = 10;   // Key G
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        gearonsent = 0;
+        gearoffsent = 1;
+      }
+       
+    } 
+     gearstate = gearstate2;
+
+
+
+  int attackstate2 = digitalRead(PIN_ATTACK);
+  if (attackstate != attackstate2) {
+     if (attackstate2 == 1 && attackonsent == 0) {
+       buf[2] = 36;   // 7
+       Serial.write(buf, 8); // Send keypress
+       releaseKey();
+       attackonsent = 1;
+       attackoffsent = 0;
+       }
+     if (attackstate2 == 0 && attackoffsent == 0) {
+        buf[2] = 35;   // 6
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        attackonsent = 0;
+        attackoffsent = 1;
+      }
+       
+     } 
+     attackstate = attackstate2;
+
+    
+
+  weaponstate = digitalRead(PIN_WEAPON);
+  if (weaponstate != 1) {
+    buf[2] = 7;   // G
+    Serial.write(buf, 8); // Send keypress
+    releaseKey();
+    delay(2000);
+  } 
+
+  int enginestate2 = digitalRead(PIN_ENGINE);
+  if (enginestate != enginestate2) {
+     if (enginestate2 == 1 && engineonsent == 0) {
+        buf[0] = KEY_RIGHT_SHIFT;   // SHIFT
+        buf[2] = 74;    // Key Home
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+       engineonsent = 1;
+       engineoffsent = 0;
+       }
+     if (enginestate2 == 0 && engineoffsent == 0) {
+        buf[0] = KEY_RIGHT_SHIFT;   // SHIFT
+        buf[2] = 77;    // Key End
+        Serial.write(buf, 8); // Send keypress
+        releaseKey();
+        engineonsent = 0;
+        engineoffsent = 1;
+      }
+       
+     } 
+     attackstate = attackstate2;
+
+
+}
+
+
+
+void releaseKey() 
+{
+  buf[0] = 0;
+  buf[2] = 0;
+  Serial.write(buf, 8); // Release key  
+  delay(500);
+}
